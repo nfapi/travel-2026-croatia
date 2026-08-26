@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Viaje | Europa 2026</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    #map { height: 100%; min-height: 500px; border-radius: 0.75rem; z-index: 1; }
+    .map-marker-hotel {
+      background-color: #2563eb;
+      color: white;
+      border: 2px solid white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .map-marker-attraction {
+      background-color: #059669;
+      color: white;
+      border: 2px solid white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP NAVBAR -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+            <i class="fa-solid fa-plane-departure text-white text-lg"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-lg leading-tight">Itinerario de Viaje: Europa 2026</h1>
+            <p class="text-xs text-slate-400">Croacia • Montenegro • Eslovenia • Bosnia</p>
+          </div>
+        </div>
+
+        <div class="hidden md:flex items-center space-x-6 text-sm">
+          <div class="flex items-center space-x-2 text-slate-300">
+            <i class="fa-regular fa-calendar text-sky-400"></i>
+            <span>1 - 20 de Septiembre</span>
+          </div>
+          <div class="flex items-center space-x-2 text-slate-300">
+            <i class="fa-solid fa-hotel text-indigo-400"></i>
+            <span>6 Hoteles Confirmados</span>
+          </div>
+          <span class="bg-sky-500/10 text-sky-400 border border-sky-500/20 px-3 py-1 rounded-full text-xs font-semibold">
+            20 Días / 19 Noches
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- DASHBOARD WRAPPER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- NAVIGATION TABS -->
+    <div class="flex items-center justify-between mb-6 border-b border-slate-200 pb-4">
+      <nav class="flex space-x-2 bg-slate-200/70 p-1.5 rounded-xl text-sm font-medium" id="tabNav">
+        <button onclick="switchTab('timeline')" id="btn-timeline" class="tab-btn active-tab flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 bg-white text-slate-900 shadow-sm font-semibold">
+          <i class="fa-solid fa-clock-rotate-left text-sky-600"></i>
+          <span>Cronograma Diario</span>
+        </button>
+        <button onclick="switchTab('hotels')" id="btn-hotels" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900">
+          <i class="fa-solid fa-hotel text-indigo-600"></i>
+          <span>Directorio de Hoteles</span>
+        </button>
+        <button onclick="switchTab('map')" id="btn-map" class="tab-btn flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900">
+          <i class="fa-solid fa-map-location-dot text-emerald-600"></i>
+          <span>Mapa Interactivo (21 Puntos)</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- TAB 1: CRONOGRAMA DIARIO TEMPORAL -->
+    <section id="tab-timeline" class="tab-content space-y-6">
+      
+      <!-- STATS SUMMARY CARDS -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-globe"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Recorrido</p>
+            <p class="text-lg font-bold text-slate-800">4 Países</p>
+          </div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-bed"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Hospedajes</p>
+            <p class="text-lg font-bold text-slate-800">6 Hoteles 4/5★</p>
+          </div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-camera-retro"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Puntos de Visita</p>
+            <p class="text-lg font-bold text-slate-800">15 Atracciones</p>
+          </div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-utensils"></i>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Régimen</p>
+            <p class="text-lg font-bold text-slate-800">Media Pensión</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIMELINE CONTENT -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- DAY CARDS CONTAINER (LEFT 8 COLUMNS) -->
+        <div class="lg:col-span-8 space-y-4" id="dayCardsContainer">
+          <!-- Cards rendered dynamically via JavaScript -->
+        </div>
+
+        <!-- QUICK INFO PANEL (RIGHT 4 COLUMNS) -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm sticky top-20">
+            <h3 class="font-bold text-slate-800 text-base mb-3 flex items-center space-x-2">
+              <i class="fa-solid fa-circle-info text-sky-500"></i>
+              <span>Detalles del Programa</span>
+            </h3>
+
+            <div class="space-y-4 text-xs text-slate-600">
+              <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <p class="font-semibold text-slate-800 mb-1">🛎️ Horarios de Check-In</p>
+                <p>Las habitaciones en los hoteles están garantizadas a partir de las 15:00 hs el día de arribo a cada ciudad.</p>
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <p class="font-semibold text-slate-800 mb-1">🍽️ Régimen de Comidas</p>
+                <p>Desayuno buffet diario y cena buffet/menú en el hotel todas las noches. Incluye almuerzo tradicional en Etnoland (Día 12).</p>
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <p class="font-semibold text-slate-800 mb-1">📍 Enlaces directos</p>
+                <p>Todos los destinos, hoteles y atracciones del cronograma incluyen links directos a Google Maps para consulta rápida de mapa y fotos.</p>
+              </div>
+
+              <div class="bg-sky-50 border border-sky-100 p-3 rounded-lg text-sky-900">
+                <p class="font-semibold mb-1">📱 Comunicación para la familia</p>
+                <p>Podés hacer clic en los números telefónicos en la pestaña "Directorio de Hoteles" para llamar directamente a la recepción de cada hotel.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- TAB 2: DIRECTORIO DE HOTELES -->
+    <section id="tab-hotels" class="tab-content hidden space-y-6">
+      <div class="bg-indigo-900 text-white rounded-2xl p-6 sm:p-8 shadow-md relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 text-indigo-800/40 text-9xl">
+          <i class="fa-solid fa-hotel"></i>
+        </div>
+        <div class="relative z-10 max-w-2xl">
+          <span class="bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider">Alojamiento Confirmado</span>
+          <h2 class="text-2xl sm:text-3xl font-bold mt-2 mb-3">Hoteles del Recorrido</h2>
+          <p class="text-indigo-200 text-sm">Directorio completo de hoteles reservados para el grupo con sus fechas de estadía, direcciones y números de contacto directo.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="hotelCardsGrid">
+        <!-- Hotels rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 3: MAPA INTERACTIVO COMPLETO -->
+    <section id="tab-map" class="tab-content hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h2 class="font-bold text-slate-800 text-lg">Mapa de Ruta, Hoteles y Excursiones</h2>
+          <p class="text-xs text-slate-500">Todos los 21 puntos clave del itinerario. Haz clic en los marcadores azúles (hoteles) y verdes (atracciones/visitas) para ver detalles.</p>
+        </div>
+        <div class="flex items-center space-x-4 text-xs">
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3.5 h-3.5 rounded-full bg-blue-600 inline-block border border-white shadow"></span>
+            <span class="text-slate-700 font-medium">Hoteles (6)</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3.5 h-3.5 rounded-full bg-emerald-600 inline-block border border-white shadow"></span>
+            <span class="text-slate-700 font-medium">Excursiones y Atractivos (15)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-xl p-2 shadow-sm" style="height: 600px;">
+        <div id="map"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 border-t border-slate-800 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs space-y-2">
+      <p class="font-medium text-slate-300">Itinerario de Viaje Acompañado Becciu - Europa 2026</p>
+      <p>Cronograma temporal detallado de hotelería, excursiones y lugares de visita.</p>
+    </div>
+  </footer>
+
+  <!-- SCRIPT CON DATOS Y LÓGICA -->
+  <script>
+    const daysData = [
+      {
+        day: 1,
+        date: "1 de Septiembre",
+        title: "Salida hacia Europa",
+        city: "Buenos Aires ➔ Zagreb",
+        cityUrl: "https://maps.google.com/?q=Zagreb+Croatia",
+        country: "Croacia",
+        hotel: "En Vuelo",
+        hotelUrl: null,
+        activities: [
+          "Presentación en el Aeropuerto Internacional de Ezeiza.",
+          "Salida en vuelo regular con conexión hacia Zagreb."
+        ],
+        meals: ["A bordo del avión"],
+        type: "transit",
+        icon: "fa-plane"
+      },
+      {
+        day: 2,
+        date: "2 de Septiembre",
+        title: "Llegada a Zagreb",
+        city: "Zagreb",
+        cityUrl: "https://maps.google.com/?q=Zagreb+Croatia",
+        country: "Croacia",
+        hotel: "The Westin Zagreb",
+        hotelUrl: "https://maps.google.com/?cid=4800456901636954574",
+        activities: [
+          "Llegada al aeropuerto internacional de <a href='https://maps.google.com/?q=Zagreb+Croatia' target='_blank' class='text-sky-600 font-semibold hover:underline'>Zagreb</a>.",
+          "Recepción y traslado privado al hotel <a href='https://maps.google.com/?cid=4800456901636954574' target='_blank' class='text-indigo-600 font-semibold hover:underline'>The Westin Zagreb</a>.",
+          "Check-in disponible a partir de las 15:00 hs.",
+          "Resto de la tarde libre para descansar."
+        ],
+        meals: ["Cena incluida en el hotel"],
+        type: "hotel",
+        icon: "fa-city"
+      },
+      {
+        day: 3,
+        date: "3 de Septiembre",
+        title: "Visita Panorámica de Zagreb",
+        city: "Zagreb",
+        cityUrl: "https://maps.google.com/?q=Zagreb+Croatia",
+        country: "Croacia",
+        hotel: "The Westin Zagreb",
+        hotelUrl: "https://maps.google.com/?cid=4800456901636954574",
+        activities: [
+          "Visita guiada por la mañana por el centro histórico <a href='https://maps.google.com/?q=Gornji+Grad+Zagreb' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Gornji Grad (Ciudad Alta)</a>.",
+          "Recorrido por la <a href='https://maps.google.com/?q=Zagreb+Cathedral' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Catedral de Zagreb del Siglo XIII</a> e <a href='https://maps.google.com/?q=St+Mark+Church+Zagreb' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Iglesia de San Marcos</a>.",
+          "Vistazo al Funicular, Plaza del Rey Tomislav, Parlamento y Palacio de Gobierno.",
+          "Tarde libre para recorrer el centro o tomar un café."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "tour",
+        icon: "fa-camera"
+      },
+      {
+        day: 4,
+        date: "4 de Septiembre",
+        title: "Excursión a Lagos de Plitvice",
+        city: "Plitvice / Zagreb",
+        cityUrl: "https://maps.google.com/?cid=367764615831641712",
+        country: "Croacia",
+        hotel: "The Westin Zagreb",
+        hotelUrl: "https://maps.google.com/?cid=4800456901636954574",
+        activities: [
+          "Salida matutina hacia el <a href='https://maps.google.com/?cid=367764615831641712' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Parque Nacional de los Lagos de Plitvice (UNESCO)</a>.",
+          "Recorrido por las pasarelas entre sus 16 lagos interconectados por cascadas.",
+          "Regreso a Zagreb por la tarde."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "excursion",
+        icon: "fa-tree"
+      },
+      {
+        day: 5,
+        date: "5 de Septiembre",
+        title: "Zagreb hacia Split (Costa Dálmata)",
+        city: "Zagreb ➔ Split",
+        cityUrl: "https://maps.google.com/?q=Split+Croatia",
+        country: "Croacia",
+        hotel: "Cornaro Hotel Split",
+        hotelUrl: "https://maps.google.com/?cid=387672586229089945",
+        activities: [
+          "Salida en autocar con destino a <a href='https://maps.google.com/?q=Split+Croatia' target='_blank' class='text-sky-600 font-semibold hover:underline'>Split</a>, principal ciudad de Dalmacia.",
+          "Llegada y check-in en el <a href='https://maps.google.com/?cid=387672586229089945' target='_blank' class='text-indigo-600 font-semibold hover:underline'>Cornaro Hotel Split</a>.",
+          "Tiempo libre para dar el primer paseo por la famosa <a href='https://maps.google.com/?q=Riva+Split' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Riva (costanera)</a>."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "hotel",
+        icon: "fa-bus"
+      },
+      {
+        day: 6,
+        date: "6 de Septiembre",
+        title: "Visita de Split y Palacio de Diocleciano",
+        city: "Split",
+        cityUrl: "https://maps.google.com/?q=Split+Croatia",
+        country: "Croacia",
+        hotel: "Cornaro Hotel Split",
+        hotelUrl: "https://maps.google.com/?cid=387672586229089945",
+        activities: [
+          "Visita guiada por el casco antiguo de Split.",
+          "Recorrido por el monumental <a href='https://maps.google.com/?cid=10527944942915383090' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Palacio de Diocleciano (UNESCO)</a>.",
+          "Visita a la Catedral de San Domnio y Templo de Júpiter.",
+          "Tarde libre."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "tour",
+        icon: "fa-landmark"
+      },
+      {
+        day: 7,
+        date: "7 de Septiembre",
+        title: "Split (Día libre u Opcional Medjugorje)",
+        city: "Split / Medjugorje",
+        cityUrl: "https://maps.google.com/?q=Medjugorje",
+        country: "Bosnia",
+        hotel: "Cornaro Hotel Split",
+        hotelUrl: "https://maps.google.com/?cid=387672586229089945",
+        activities: [
+          "Día libre en Split para disfrutar del mar o compras.",
+          "Opcional: Excursión de día completo al <a href='https://maps.google.com/?q=Medjugorje' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Santuario de Medjugorje</a> en Bosnia y Herzegovina."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "free",
+        icon: "fa-umbrella-beach"
+      },
+      {
+        day: 8,
+        date: "8 de Septiembre",
+        title: "Ruta Costera: Split ➔ Dubrovnik",
+        city: "Split ➔ Dubrovnik",
+        cityUrl: "https://maps.google.com/?q=Dubrovnik",
+        country: "Croacia",
+        hotel: "Valamar Lacroma Hotel",
+        hotelUrl: "https://maps.google.com/?cid=1569515434356520356",
+        activities: [
+          "Salida bordeando la panorámica costa del Adriático.",
+          "Llegada a <a href='https://maps.google.com/?q=Dubrovnik' target='_blank' class='text-sky-600 font-semibold hover:underline'>Dubrovnik ('La Perla del Adriático')</a>.",
+          "Check-in en el <a href='https://maps.google.com/?cid=1569515434356520356' target='_blank' class='text-indigo-600 font-semibold hover:underline'>Valamar Lacroma Hotel</a> y resto de la tarde libre."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "hotel",
+        icon: "fa-water"
+      },
+      {
+        day: 9,
+        date: "9 de Septiembre",
+        title: "Visita Panorámica de Dubrovnik",
+        city: "Dubrovnik",
+        cityUrl: "https://maps.google.com/?q=Dubrovnik",
+        country: "Croacia",
+        hotel: "Valamar Lacroma Hotel",
+        hotelUrl: "https://maps.google.com/?cid=1569515434356520356",
+        activities: [
+          "Visita panorámica por la mañana dentro de la <a href='https://maps.google.com/?q=Dubrovnik+Old+Town' target='_blank' class='text-emerald-600 font-semibold hover:underline'>ciudad amurallada de Dubrovnik</a>.",
+          "Paseo por la arteria principal Stradun, Plaza Logia y Torre del Reloj.",
+          "Opcional por la tarde: Paseo en barco a la <a href='https://maps.google.com/?q=Lokrum+Island' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Isla de Lokrum</a>."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "tour",
+        icon: "fa-archway"
+      },
+      {
+        day: 10,
+        date: "10 de Septiembre",
+        title: "Excursión a Kotor (Montenegro)",
+        city: "Dubrovnik ➔ Kotor ➔ Dubrovnik",
+        cityUrl: "https://maps.google.com/?cid=7213753815455049709",
+        country: "Montenegro",
+        hotel: "Valamar Lacroma Hotel",
+        hotelUrl: "https://maps.google.com/?cid=1569515434356520356",
+        activities: [
+          "Excursión cruzando la frontera a Montenegro hacia la Bahía de Kotor.",
+          "Visita guiada por el casco antiguo amurallado de <a href='https://maps.google.com/?cid=7213753815455049709' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Kotor (UNESCO)</a>.",
+          "Catedral de San Nicolás y Museo Marítimo.",
+          "Regreso por la tarde a Dubrovnik."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "excursion",
+        icon: "fa-mountain"
+      },
+      {
+        day: 11,
+        date: "11 de Septiembre",
+        title: "Dubrovnik Día Libre",
+        city: "Dubrovnik",
+        cityUrl: "https://maps.google.com/?q=Dubrovnik",
+        country: "Croacia",
+        hotel: "Valamar Lacroma Hotel",
+        hotelUrl: "https://maps.google.com/?cid=1569515434356520356",
+        activities: [
+          "Día libre completo para caminar sobre las <a href='https://maps.google.com/?q=Walls+of+Dubrovnik' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Murallas medievales</a>, subir en teleférico o descansar en las playas."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "free",
+        icon: "fa-sun"
+      },
+      {
+        day: 12,
+        date: "12 de Septiembre",
+        title: "Etnoland Pakovo Selo ➔ Zadar",
+        city: "Dubrovnik ➔ Pakovo Selo ➔ Zadar",
+        cityUrl: "https://maps.google.com/?cid=17328819205774477467",
+        country: "Croacia",
+        hotel: "Hyatt Regency Zadar",
+        hotelUrl: "https://maps.google.com/?cid=17328819205774477467",
+        activities: [
+          "Salida hacia el interior de Dalmacia.",
+          "Visita al parque temático <a href='https://maps.google.com/?cid=15511003418562245732' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Etnoland Dalmati</a> con almuerzo tradicional incluido.",
+          "Continuación hacia la ciudad costera de <a href='https://maps.google.com/?q=Zadar+Croatia' target='_blank' class='text-sky-600 font-semibold hover:underline'>Zadar</a>.",
+          "Check-in en el <a href='https://maps.google.com/?cid=17328819205774477467' target='_blank' class='text-indigo-600 font-semibold hover:underline'>Hyatt Regency Zadar</a>."
+        ],
+        meals: ["Desayuno buffet", "Almuerzo típico incluido", "Cena incluida"],
+        type: "tour",
+        icon: "fa-utensils"
+      },
+      {
+        day: 13,
+        date: "13 de Septiembre",
+        title: "Zadar ➔ Riviera de Opatija",
+        city: "Zadar ➔ Opatija",
+        cityUrl: "https://maps.google.com/?cid=10724163789393570709",
+        country: "Croacia",
+        hotel: "Hotel Milenij Opatija",
+        hotelUrl: "https://maps.google.com/?cid=10724163789393570709",
+        activities: [
+          "Visita panorámica matutina de Zadar: Catedral de Santa Anastasia, Foro Romano y <a href='https://maps.google.com/?q=Sea+Organ+Zadar' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Órgano de Mar</a>.",
+          "Viaje hacia <a href='https://maps.google.com/?q=Opatija+Croatia' target='_blank' class='text-sky-600 font-semibold hover:underline'>Opatija</a>, balneario histórico.",
+          "Alojamiento en el <a href='https://maps.google.com/?cid=10724163789393570709' target='_blank' class='text-indigo-600 font-semibold hover:underline'>Hotel Milenij Opatija</a>."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "hotel",
+        icon: "fa-hotel"
+      },
+      {
+        day: 14,
+        date: "14 de Septiembre",
+        title: "Opatija Día Libre",
+        city: "Opatija",
+        cityUrl: "https://maps.google.com/?q=Opatija+Croatia",
+        country: "Croacia",
+        hotel: "Hotel Milenij Opatija",
+        hotelUrl: "https://maps.google.com/?cid=10724163789393570709",
+        activities: [
+          "Día libre a disposición de los pasajeros.",
+          "Sugerencia: Caminar por el famoso paseo marítimo <a href='https://maps.google.com/?q=Lungomare+Opatija' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Lungomare</a> (10 km) hasta el pintoresco pueblo de Lovran."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "free",
+        icon: "fa-walking"
+      },
+      {
+        day: 15,
+        date: "15 de Septiembre",
+        title: "Cuevas de Postojna ➔ Ljubljana",
+        city: "Opatija ➔ Postojna ➔ Ljubljana",
+        cityUrl: "https://maps.google.com/?cid=12281389870853646901",
+        country: "Eslovenia",
+        hotel: "Grand Hotel Union Eurostars",
+        hotelUrl: "https://maps.google.com/?cid=12281389870853646901",
+        activities: [
+          "Cruce de frontera hacia Eslovenia.",
+          "Visita a las famosas <a href='https://maps.google.com/?cid=10180141766497075902' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Cuevas de Postojna</a> (recorrido en tren subterráneo).",
+          "Continuación hacia <a href='https://maps.google.com/?q=Ljubljana+Slovenia' target='_blank' class='text-sky-600 font-semibold hover:underline'>Ljubljana</a>, capital de Eslovenia.",
+          "Check-in en el <a href='https://maps.google.com/?cid=12281389870853646901' target='_blank' class='text-indigo-600 font-semibold hover:underline'>Grand Hotel Union Eurostars</a>."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "excursion",
+        icon: "fa-gem"
+      },
+      {
+        day: 16,
+        date: "16 de Septiembre",
+        title: "Visita Panorámica de Ljubljana",
+        city: "Ljubljana",
+        cityUrl: "https://maps.google.com/?q=Ljubljana+Slovenia",
+        country: "Eslovenia",
+        hotel: "Grand Hotel Union Eurostars",
+        hotelUrl: "https://maps.google.com/?cid=12281389870853646901",
+        activities: [
+          "Visita guiada caminando por el centro peatonal a orillas del río Ljubljanica.",
+          "Recorrido por la <a href='https://maps.google.com/?q=Triple+Bridge+Ljubljana' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Plaza de los Tres Puentes</a>, Galería Nacional y Ayuntamiento Barroco.",
+          "Tarde libre."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "tour",
+        icon: "fa-bridge"
+      },
+      {
+        day: 17,
+        date: "17 de Septiembre",
+        title: "Excursión a Maribor y Ptuj",
+        city: "Ljubljana ➔ Maribor ➔ Ptuj ➔ Ljubljana",
+        cityUrl: "https://maps.google.com/?q=Maribor+Slovenia",
+        country: "Eslovenia",
+        hotel: "Grand Hotel Union Eurostars",
+        hotelUrl: "https://maps.google.com/?cid=12281389870853646901",
+        activities: [
+          "Excursión hacia la región vitivinícola de Štajerska.",
+          "Visita a <a href='https://maps.google.com/?q=Maribor+Slovenia' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Maribor</a> con visita a bodega y degustación de vinos.",
+          "Continuación a <a href='https://maps.google.com/?q=Ptuj+Slovenia' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Ptuj</a>, la ciudad más antigua de Eslovenia.",
+          "Regreso a Ljubljana."
+        ],
+        meals: ["Desayuno buffet", "Cena incluida"],
+        type: "excursion",
+        icon: "fa-wine-glass"
+      },
+      {
+        day: 18,
+        date: "18 de Septiembre",
+        title: "Excursión al Lago de Bled",
+        city: "Ljubljana ➔ Bled ➔ Ljubljana",
+        cityUrl: "https://maps.google.com/?cid=990976632077902768",
+        country: "Eslovenia",
+        hotel: "Grand Hotel Union Eurostars",
+        hotelUrl: "https://maps.google.com/?cid=12281389870853646901",
+        activities: [
+          "Excursión al icónico <a href='https://maps.google.com/?q=Lake+Bled' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Lago de Bled</a>.",
+          "Visita al acantilado y al <a href='https://maps.google.com/?cid=990976632077902768' target='_blank' class='text-emerald-600 font-semibold hover:underline'>Castillo de Bled</a>.",
+          "Regreso a Ljubljana y cena especial de despedida."
+        ],
+        meals: ["Desayuno buffet", "Cena de despedida incluida"],
+        type: "excursion",
+        icon: "fa-glass-cheers"
+      },
+      {
+        day: 19,
+        date: "19 de Septiembre",
+        title: "Ljubljana ➔ Regreso a Argentina",
+        city: "Ljubljana ➔ Buenos Aires",
+        cityUrl: "https://maps.google.com/?q=Ljubljana+Airport",
+        country: "Eslovenia",
+        hotel: "En Vuelo",
+        hotelUrl: null,
+        activities: [
+          "Mañana libre en Ljubljana. Habitación disponible hasta las 11:00 hs.",
+          "A la hora acordada, traslado privado al aeropuerto.",
+          "Vuelo de regreso con conexión a Buenos Aires."
+        ],
+        meals: ["Desayuno buffet"],
+        type: "transit",
+        icon: "fa-plane-arrival"
+      },
+      {
+        day: 20,
+        date: "20 de Septiembre",
+        title: "Llegada a Buenos Aires",
+        city: "Buenos Aires (Ezeiza)",
+        cityUrl: "https://maps.google.com/?q=Ezeiza+Airport",
+        country: "Argentina",
+        hotel: "Fin del viaje",
+        hotelUrl: null,
+        activities: [
+          "Llegada al Aeropuerto Internacional de Ezeiza.",
+          "Fin de los servicios del itinerario."
+        ],
+        meals: [],
+        type: "transit",
+        icon: "fa-house-user"
+      }
+    ];
+
+    const hotelsList = [
+      {
+        city: "Zagreb",
+        dates: "1 al 4 de Septiembre (3 noches)",
+        name: "The Westin Zagreb",
+        stars: 5,
+        address: "Krsnjavoga 1, Zagreb, Croacia",
+        phone: "+385 52 808896",
+        gmaps: "https://maps.google.com/?cid=4800456901636954574",
+        bg: "from-blue-600 to-indigo-700"
+      },
+      {
+        city: "Split",
+        dates: "4 al 7 de Septiembre (3 noches)",
+        name: "Cornaro Hotel Split",
+        stars: 4,
+        address: "Sinjska ul. 6, Split, Croacia",
+        phone: "+385 21 644 200",
+        gmaps: "https://maps.google.com/?cid=387672586229089945",
+        bg: "from-sky-600 to-blue-700"
+      },
+      {
+        city: "Dubrovnik",
+        dates: "7 al 11 de Septiembre (4 noches)",
+        name: "Valamar Lacroma Hotel",
+        stars: 4,
+        address: "Ul. Iva Dulčića 34, Dubrovnik, Croacia",
+        phone: "+385 52 465 000",
+        gmaps: "https://maps.google.com/?cid=1569515434356520356",
+        bg: "from-teal-600 to-emerald-700"
+      },
+      {
+        city: "Zadar",
+        dates: "11 al 12 de Septiembre (1 noche)",
+        name: "Hyatt Regency Zadar",
+        stars: 5,
+        address: "Obala kneza Trpimira 7, Zadar, Croacia",
+        phone: "+385 23 421 234",
+        gmaps: "https://maps.google.com/?cid=17328819205774477467",
+        bg: "from-indigo-600 to-violet-700"
+      },
+      {
+        city: "Opatija",
+        dates: "12 al 14 de Septiembre (2 noches)",
+        name: "Hotel Milenij Opatija",
+        stars: 5,
+        address: "Ul. Maršala Tita 109, Opatija, Croacia",
+        phone: "+385 51 278 016",
+        gmaps: "https://maps.google.com/?cid=10724163789393570709",
+        bg: "from-purple-600 to-pink-700"
+      },
+      {
+        city: "Ljubljana",
+        dates: "14 al 18 de Septiembre (4 noches)",
+        name: "Grand Hotel Union Eurostars",
+        stars: 4,
+        address: "Miklošičeva cesta 1, Ljubljana, Eslovenia",
+        phone: "+386 1 308 12 70",
+        gmaps: "https://maps.google.com/?cid=12281389870853646901",
+        bg: "from-slate-700 to-slate-900"
+      }
+    ];
+
+    const mapLocations = [
+      // HOTELES (6)
+      { name: "The Westin Zagreb", lat: 45.8073, lng: 15.9678, type: "hotel", desc: "Zagreb • Noches 2, 3 y 4", url: "https://maps.google.com/?cid=4800456901636954574" },
+      { name: "Cornaro Hotel Split", lat: 43.5106, lng: 16.4388, type: "hotel", desc: "Split • Noches 5, 6 y 7", url: "https://maps.google.com/?cid=387672586229089945" },
+      { name: "Valamar Lacroma Dubrovnik", lat: 42.6580, lng: 18.0610, type: "hotel", desc: "Dubrovnik • Noches 8, 9, 10 y 11", url: "https://maps.google.com/?cid=1569515434356520356" },
+      { name: "Hyatt Regency Zadar", lat: 44.1226, lng: 15.2285, type: "hotel", desc: "Zadar • Noche 12", url: "https://maps.google.com/?cid=17328819205774477467" },
+      { name: "Hotel Milenij Opatija", lat: 45.3340, lng: 14.3060, type: "hotel", desc: "Opatija • Noches 13 y 14", url: "https://maps.google.com/?cid=10724163789393570709" },
+      { name: "Grand Hotel Union Ljubljana", lat: 46.0526, lng: 14.5065, type: "hotel", desc: "Ljubljana • Noches 15, 16, 17 y 18", url: "https://maps.google.com/?cid=12281389870853646901" },
+
+      // ATRACCIONES Y EXCURSIONES (15)
+      { name: "Zagreb: Centro Histórico y Catedral", lat: 45.8150, lng: 15.9780, type: "tour", desc: "Visita panorámica Día 3", url: "https://maps.google.com/?q=Zagreb+Cathedral" },
+      { name: "Parque Nacional Lagos de Plitvice", lat: 44.8805, lng: 15.6161, type: "tour", desc: "Excursión Día 4 (UNESCO)", url: "https://maps.google.com/?cid=367764615831641712" },
+      { name: "Palacio de Diocleciano y Riva (Split)", lat: 43.5081, lng: 16.4402, type: "tour", desc: "Visita guiada Día 6", url: "https://maps.google.com/?cid=10527944942915383090" },
+      { name: "Santuario de Medjugorje (Bosnia)", lat: 43.1931, lng: 17.6766, type: "tour", desc: "Excursión Opcional Día 7", url: "https://maps.google.com/?q=Medjugorje" },
+      { name: "Dubrovnik: Stradun y Murallas", lat: 42.6413, lng: 18.1103, type: "tour", desc: "Visita panorámica Día 9", url: "https://maps.google.com/?q=Dubrovnik+Old+Town" },
+      { name: "Isla de Lokrum", lat: 42.6322, lng: 18.1215, type: "tour", desc: "Paseo opcional en barco Día 9", url: "https://maps.google.com/?q=Lokrum+Island" },
+      { name: "Kotor: Casco Antiguo (Montenegro)", lat: 42.4247, lng: 18.7712, type: "tour", desc: "Excursión Día 10 (UNESCO)", url: "https://maps.google.com/?cid=7213753815455049709" },
+      { name: "Etnoland Pakovo Selo", lat: 43.7844, lng: 16.0375, type: "tour", desc: "Almuerzo tradicional Día 12", url: "https://maps.google.com/?cid=15511003418562245732" },
+      { name: "Zadar: Órgano de Mar y Foro Romano", lat: 44.1177, lng: 15.2238, type: "tour", desc: "Visita panorámica Día 13", url: "https://maps.google.com/?q=Sea+Organ+Zadar" },
+      { name: "Paseo Marítimo Lungomare (Opatija)", lat: 45.3330, lng: 14.3050, type: "tour", desc: "Paseo libre Día 14", url: "https://maps.google.com/?q=Lungomare+Opatija" },
+      { name: "Cuevas de Postojna (Eslovenia)", lat: 45.7830, lng: 14.2040, type: "tour", desc: "Excursión subterránea Día 15", url: "https://maps.google.com/?cid=10180141766497075902" },
+      { name: "Ljubljana: Tres Puentes y Centro", lat: 46.0514, lng: 14.5060, type: "tour", desc: "Visita guiada Día 16", url: "https://maps.google.com/?q=Triple+Bridge+Ljubljana" },
+      { name: "Maribor (Ciudad y Bodega)", lat: 46.5547, lng: 15.6459, type: "tour", desc: "Degustación de vinos Día 17", url: "https://maps.google.com/?q=Maribor+Slovenia" },
+      { name: "Ptuj (Ciudad Medieval)", lat: 46.4208, lng: 15.8681, type: "tour", desc: "Excursión Día 17", url: "https://maps.google.com/?q=Ptuj+Slovenia" },
+      { name: "Castillo y Lago de Bled", lat: 46.3692, lng: 14.1136, type: "tour", desc: "Excursión Día 18", url: "https://maps.google.com/?cid=990976632077902768" }
+    ];
+
+    let leafletMap = null;
+
+    function renderDays() {
+      const container = document.getElementById('dayCardsContainer');
+      container.innerHTML = "";
+
+      daysData.forEach(d => {
+        const card = document.createElement('div');
+        card.className = "bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition duration-200 overflow-hidden";
+        
+        let typeBadgeClass = "bg-slate-100 text-slate-600";
+        if(d.type === 'tour') typeBadgeClass = "bg-sky-50 text-sky-700 border border-sky-200";
+        if(d.type === 'excursasion' || d.type === 'excursión' || d.type === 'excursiaon') typeBadgeClass = "bg-emerald-50 text-emerald-700 border border-emerald-200";
+        if(d.type === 'free') typeBadgeClass = "bg-amber-50 text-amber-700 border border-amber-200";
+
+        let mealsHTML = d.meals.map(m => `<span class="inline-flex items-center space-x-1 bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1 rounded-md font-medium"><i class="fa-solid fa-utensils text-[10px] text-amber-500"></i> <span>${m}</span></span>`).join(" ");
+
+        let hotelLinkHTML = d.hotelUrl ? 
+          `<a href="${d.hotelUrl}" target="_blank" class="text-indigo-600 font-bold hover:underline inline-flex items-center space-x-1">${d.hotel} <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-1"></i></a>` : 
+          `<strong class="text-slate-900">${d.hotel}</strong>`;
+
+        let cityLinkHTML = d.cityUrl ?
+          `<a href="${d.cityUrl}" target="_blank" class="text-sky-600 font-semibold hover:underline inline-flex items-center space-x-1">${d.city} <i class="fa-solid fa-location-arrow text-[10px] ml-0.5"></i></a>` :
+          `<span class="text-sky-600 font-semibold">${d.city}</span>`;
+
+        card.innerHTML = `
+          <div class="p-5">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
+              <div class="flex items-center space-x-3">
+                <span class="w-9 h-9 rounded-lg bg-slate-900 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-sm">
+                  D${d.day}
+                </span>
+                <div>
+                  <h3 class="font-bold text-slate-800 text-base leading-tight">${d.title}</h3>
+                  <p class="text-xs text-slate-500 font-medium">${d.date} • ${cityLinkHTML}</p>
+                </div>
+              </div>
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${typeBadgeClass}">
+                <i class="fa-solid ${d.icon} mr-1"></i> ${d.country}
+              </span>
+            </div>
+
+            <!-- ACTIVIDADES -->
+            <ul class="space-y-1.5 text-xs text-slate-600 mb-4 pl-1">
+              ${d.activities.map(act => `<li class="flex items-start space-x-2"><span class="text-sky-500 font-bold">•</span><span>${act}</span></li>`).join("")}
+            </ul>
+
+            <!-- HOTEL & MEALS BOTTOM BAR -->
+            <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div class="flex items-center space-x-2 text-slate-700 font-medium">
+                <i class="fa-solid fa-hotel text-indigo-500"></i>
+                <span>Noche en: ${hotelLinkHTML}</span>
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                ${mealsHTML}
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderHotels() {
+      const grid = document.getElementById('hotelCardsGrid');
+      grid.innerHTML = "";
+
+      hotelsList.forEach(h => {
+        const card = document.createElement('div');
+        card.className = "bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between";
+        card.innerHTML = `
+          <div>
+            <div class="bg-gradient-to-r ${h.bg} text-white p-5">
+              <div class="flex justify-between items-start mb-2">
+                <span class="bg-white/20 backdrop-blur-md text-white text-xs px-2.5 py-0.5 rounded-md font-semibold">${h.city}</span>
+                <span class="text-amber-300 text-xs">${'★'.repeat(h.stars)}</span>
+              </div>
+              <h3 class="font-bold text-lg leading-snug">${h.name}</h3>
+              <p class="text-xs text-white/80 mt-1"><i class="fa-regular fa-calendar-check mr-1"></i> ${h.dates}</p>
+            </div>
+
+            <div class="p-5 space-y-3 text-xs text-slate-600">
+              <div class="flex items-start space-x-2.5">
+                <i class="fa-solid fa-location-dot text-slate-400 mt-0.5"></i>
+                <span>${h.address}</span>
+              </div>
+              <div class="flex items-center space-x-2.5">
+                <i class="fa-solid fa-phone text-slate-400"></i>
+                <a href="tel:${h.phone}" class="text-sky-600 font-semibold hover:underline">${h.phone}</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+            <a href="tel:${h.phone}" class="flex-1 text-center py-2 bg-white border border-slate-200 text-slate-700 font-semibold rounded-lg text-xs hover:bg-slate-100 transition">
+              <i class="fa-solid fa-phone text-indigo-600 mr-1"></i> Llamar Hotel
+            </a>
+            <a href="${h.gmaps}" target="_blank" class="flex-1 text-center py-2 bg-sky-600 text-white font-semibold rounded-lg text-xs hover:bg-sky-700 transition">
+              <i class="fa-solid fa-map-pin mr-1"></i> Ver en Mapa
+            </a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function initMap() {
+      if(leafletMap) return;
+
+      leafletMap = L.map('map').setView([44.5000, 16.5000], 7);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(leafletMap);
+
+      // Add polyline linking all major route stops
+      const routeCoords = mapLocations.map(m => [m.lat, m.lng]);
+      L.polyline(routeCoords, { color: '#0284c7', weight: 3, opacity: 0.5, dashArray: '6, 6' }).addTo(leafletMap);
+
+      mapLocations.forEach(loc => {
+        const isHotel = loc.type === "hotel";
+        
+        const iconHTML = isHotel ? 
+          `<div class="map-marker-hotel w-7 h-7"><i class="fa-solid fa-bed text-xs"></i></div>` :
+          `<div class="map-marker-attraction w-7 h-7"><i class="fa-solid fa-camera text-xs"></i></div>`;
+
+        const customIcon = L.divIcon({
+          className: 'custom-leaflet-icon',
+          html: iconHTML,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+
+        L.marker([loc.lat, loc.lng], { icon: customIcon })
+          .addTo(leafletMap)
+          .bindPopup(`
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; padding: 4px; max-width: 200px;">
+              <span style="font-size: 10px; font-weight: 700; color: ${isHotel ? '#2563eb' : '#059669'}; uppercase;">
+                ${isHotel ? '🏨 HOTEL CONFIRMADO' : '📸 EXCURSIÓN / VISITA'}
+              </span>
+              <h4 style="color: #0f172a; font-weight: 700; font-size: 13px; margin: 2px 0;">${loc.name}</h4>
+              <p style="font-size: 11px; color: #64748b; margin-bottom: 6px;">${loc.desc}</p>
+              <a href="${loc.url}" target="_blank" style="display: inline-block; background-color: #0284c7; color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-size: 10px; font-weight: 600;">Abrir en Google Maps</a>
+            </div>
+          `);
+      });
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm', 'font-semibold');
+        btn.classList.add('text-slate-600');
+      });
+
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`btn-${tabId}`);
+      activeBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm', 'font-semibold');
+      activeBtn.classList.remove('text-slate-600');
+
+      if (tabId === 'map') {
+        setTimeout(() => {
+          initMap();
+          leafletMap.invalidateSize();
+        }, 100);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderDays();
+      renderHotels();
+    });
+  </script>
+</body>
+</html>
