@@ -61,7 +61,7 @@
         <div class="hidden md:flex items-center space-x-6 text-sm">
           <div class="flex items-center space-x-2 text-slate-300">
             <i class="fa-regular fa-calendar text-sky-400"></i>
-            <span>1 - 20 de Septiembre</span>
+            <span>31 de Agosto - 19 de Septiembre</span>
           </div>
           <div class="flex items-center space-x-2 text-slate-300">
             <i class="fa-solid fa-hotel text-indigo-400"></i>
@@ -99,43 +99,57 @@
     <!-- TAB 1: CRONOGRAMA DIARIO TEMPORAL -->
     <section id="tab-timeline" class="tab-content space-y-6">
       
-      <!-- STATS SUMMARY CARDS -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center space-x-4">
-          <div class="w-12 h-12 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-xl">
-            <i class="fa-solid fa-globe"></i>
+      <!-- STATS SUMMARY CARDS (3 CARDS INTERACTIVE WITH EXPANDABLE PANEL) -->
+      <div class="space-y-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <div onclick="toggleStatsDetail('countries')" class="bg-white border border-slate-200 hover:border-sky-400 cursor-pointer rounded-xl p-4 shadow-sm flex items-center justify-between transition duration-200 group">
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-xl group-hover:bg-sky-600 group-hover:text-white transition">
+                <i class="fa-solid fa-globe"></i>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 font-medium">Recorrido (Clic para ver)</p>
+                <p class="text-lg font-bold text-slate-800">4 Países <i class="fa-solid fa-chevron-down text-xs ml-1 text-slate-400 group-hover:text-sky-600"></i></p>
+              </div>
+            </div>
           </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Recorrido</p>
-            <p class="text-lg font-bold text-slate-800">4 Países</p>
+
+          <div onclick="toggleStatsDetail('hotels')" class="bg-white border border-slate-200 hover:border-indigo-400 cursor-pointer rounded-xl p-4 shadow-sm flex items-center justify-between transition duration-200 group">
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition">
+                <i class="fa-solid fa-bed"></i>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 font-medium">Hospedajes (Clic para ver)</p>
+                <p class="text-lg font-bold text-slate-800">6 Hoteles <i class="fa-solid fa-chevron-down text-xs ml-1 text-slate-400 group-hover:text-indigo-600"></i></p>
+              </div>
+            </div>
           </div>
+
+          <div onclick="toggleStatsDetail('attractions')" class="bg-white border border-slate-200 hover:border-emerald-400 cursor-pointer rounded-xl p-4 shadow-sm flex items-center justify-between transition duration-200 group">
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition">
+                <i class="fa-solid fa-camera-retro"></i>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 font-medium">Puntos de Visita (Clic para ver)</p>
+                <p class="text-lg font-bold text-slate-800">15 Atracciones <i class="fa-solid fa-chevron-down text-xs ml-1 text-slate-400 group-hover:text-emerald-600"></i></p>
+              </div>
+            </div>
+          </div>
+
         </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center space-x-4">
-          <div class="w-12 h-12 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
-            <i class="fa-solid fa-bed"></i>
+
+        <!-- EXPANDABLE DRAWER PANEL FOR STATS -->
+        <div id="statsDetailPanel" class="hidden bg-white border border-slate-200 rounded-xl p-5 shadow-md text-xs transition-all duration-300">
+          <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+            <h4 id="statsDetailTitle" class="font-bold text-slate-800 text-sm"></h4>
+            <button onclick="closeStatsDetail()" class="text-slate-400 hover:text-slate-600 p-1">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
           </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Hospedajes</p>
-            <p class="text-lg font-bold text-slate-800">6 Hoteles 4/5★</p>
-          </div>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center space-x-4">
-          <div class="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
-            <i class="fa-solid fa-camera-retro"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Puntos de Visita</p>
-            <p class="text-lg font-bold text-slate-800">15 Atracciones</p>
-          </div>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center space-x-4">
-          <div class="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
-            <i class="fa-solid fa-utensils"></i>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 font-medium">Régimen</p>
-            <p class="text-lg font-bold text-slate-800">Media Pensión</p>
-          </div>
+          <div id="statsDetailContent"></div>
         </div>
       </div>
 
@@ -169,11 +183,6 @@
               <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
                 <p class="font-semibold text-slate-800 mb-1">📍 Enlaces directos</p>
                 <p>Todos los destinos, hoteles y atracciones del cronograma incluyen links directos a Google Maps para consulta rápida de mapa y fotos.</p>
-              </div>
-
-              <div class="bg-sky-50 border border-sky-100 p-3 rounded-lg text-sky-900">
-                <p class="font-semibold mb-1">📱 Comunicación para la familia</p>
-                <p>Podés hacer clic en los números telefónicos en la pestaña "Directorio de Hoteles" para llamar directamente a la recepción de cada hotel.</p>
               </div>
             </div>
           </div>
@@ -240,7 +249,7 @@
     const daysData = [
       {
         day: 1,
-        date: "1 de Septiembre",
+        date: "31 de Agosto",
         title: "Salida hacia Europa",
         city: "Buenos Aires ➔ Zagreb",
         cityUrl: "https://maps.google.com/?q=Zagreb+Croatia",
@@ -257,7 +266,7 @@
       },
       {
         day: 2,
-        date: "2 de Septiembre",
+        date: "1 de Septiembre",
         title: "Llegada a Zagreb",
         city: "Zagreb",
         cityUrl: "https://maps.google.com/?q=Zagreb+Croatia",
@@ -276,7 +285,7 @@
       },
       {
         day: 3,
-        date: "3 de Septiembre",
+        date: "2 de Septiembre",
         title: "Visita Panorámica de Zagreb",
         city: "Zagreb",
         cityUrl: "https://maps.google.com/?q=Zagreb+Croatia",
@@ -295,7 +304,7 @@
       },
       {
         day: 4,
-        date: "4 de Septiembre",
+        date: "3 de Septiembre",
         title: "Excursión a Lagos de Plitvice",
         city: "Plitvice / Zagreb",
         cityUrl: "https://maps.google.com/?cid=367764615831641712",
@@ -313,7 +322,7 @@
       },
       {
         day: 5,
-        date: "5 de Septiembre",
+        date: "4 de Septiembre",
         title: "Zagreb hacia Split (Costa Dálmata)",
         city: "Zagreb ➔ Split",
         cityUrl: "https://maps.google.com/?q=Split+Croatia",
@@ -331,7 +340,7 @@
       },
       {
         day: 6,
-        date: "6 de Septiembre",
+        date: "5 de Septiembre",
         title: "Visita de Split y Palacio de Diocleciano",
         city: "Split",
         cityUrl: "https://maps.google.com/?q=Split+Croatia",
@@ -350,7 +359,7 @@
       },
       {
         day: 7,
-        date: "7 de Septiembre",
+        date: "6 de Septiembre",
         title: "Split (Día libre u Opcional Medjugorje)",
         city: "Split / Medjugorje",
         cityUrl: "https://maps.google.com/?q=Medjugorje",
@@ -367,7 +376,7 @@
       },
       {
         day: 8,
-        date: "8 de Septiembre",
+        date: "7 de Septiembre",
         title: "Ruta Costera: Split ➔ Dubrovnik",
         city: "Split ➔ Dubrovnik",
         cityUrl: "https://maps.google.com/?q=Dubrovnik",
@@ -385,7 +394,7 @@
       },
       {
         day: 9,
-        date: "9 de Septiembre",
+        date: "8 de Septiembre",
         title: "Visita Panorámica de Dubrovnik",
         city: "Dubrovnik",
         cityUrl: "https://maps.google.com/?q=Dubrovnik",
@@ -403,7 +412,7 @@
       },
       {
         day: 10,
-        date: "10 de Septiembre",
+        date: "9 de Septiembre",
         title: "Excursión a Kotor (Montenegro)",
         city: "Dubrovnik ➔ Kotor ➔ Dubrovnik",
         cityUrl: "https://maps.google.com/?cid=7213753815455049709",
@@ -422,7 +431,7 @@
       },
       {
         day: 11,
-        date: "11 de Septiembre",
+        date: "10 de Septiembre",
         title: "Dubrovnik Día Libre",
         city: "Dubrovnik",
         cityUrl: "https://maps.google.com/?q=Dubrovnik",
@@ -438,7 +447,7 @@
       },
       {
         day: 12,
-        date: "12 de Septiembre",
+        date: "11 de Septiembre",
         title: "Etnoland Pakovo Selo ➔ Zadar",
         city: "Dubrovnik ➔ Pakovo Selo ➔ Zadar",
         cityUrl: "https://maps.google.com/?cid=17328819205774477467",
@@ -457,7 +466,7 @@
       },
       {
         day: 13,
-        date: "13 de Septiembre",
+        date: "12 de Septiembre",
         title: "Zadar ➔ Riviera de Opatija",
         city: "Zadar ➔ Opatija",
         cityUrl: "https://maps.google.com/?cid=10724163789393570709",
@@ -475,7 +484,7 @@
       },
       {
         day: 14,
-        date: "14 de Septiembre",
+        date: "13 de Septiembre",
         title: "Opatija Día Libre",
         city: "Opatija",
         cityUrl: "https://maps.google.com/?q=Opatija+Croatia",
@@ -492,7 +501,7 @@
       },
       {
         day: 15,
-        date: "15 de Septiembre",
+        date: "14 de Septiembre",
         title: "Cuevas de Postojna ➔ Ljubljana",
         city: "Opatija ➔ Postojna ➔ Ljubljana",
         cityUrl: "https://maps.google.com/?cid=12281389870853646901",
@@ -511,7 +520,7 @@
       },
       {
         day: 16,
-        date: "16 de Septiembre",
+        date: "15 de Septiembre",
         title: "Visita Panorámica de Ljubljana",
         city: "Ljubljana",
         cityUrl: "https://maps.google.com/?q=Ljubljana+Slovenia",
@@ -529,7 +538,7 @@
       },
       {
         day: 17,
-        date: "17 de Septiembre",
+        date: "16 de Septiembre",
         title: "Excursión a Maribor y Ptuj",
         city: "Ljubljana ➔ Maribor ➔ Ptuj ➔ Ljubljana",
         cityUrl: "https://maps.google.com/?q=Maribor+Slovenia",
@@ -548,7 +557,7 @@
       },
       {
         day: 18,
-        date: "18 de Septiembre",
+        date: "17 de Septiembre",
         title: "Excursión al Lago de Bled",
         city: "Ljubljana ➔ Bled ➔ Ljubljana",
         cityUrl: "https://maps.google.com/?cid=990976632077902768",
@@ -566,7 +575,7 @@
       },
       {
         day: 19,
-        date: "19 de Septiembre",
+        date: "18 de Septiembre",
         title: "Ljubljana ➔ Regreso a Argentina",
         city: "Ljubljana ➔ Buenos Aires",
         cityUrl: "https://maps.google.com/?q=Ljubljana+Airport",
@@ -584,7 +593,7 @@
       },
       {
         day: 20,
-        date: "20 de Septiembre",
+        date: "19 de Septiembre",
         title: "Llegada a Buenos Aires",
         city: "Buenos Aires (Ezeiza)",
         cityUrl: "https://maps.google.com/?q=Ezeiza+Airport",
@@ -604,7 +613,7 @@
     const hotelsList = [
       {
         city: "Zagreb",
-        dates: "1 al 4 de Septiembre (3 noches)",
+        dates: "31 de Agosto al 3 de Septiembre (3 noches)",
         name: "The Westin Zagreb",
         stars: 5,
         address: "Krsnjavoga 1, Zagreb, Croacia",
@@ -614,7 +623,7 @@
       },
       {
         city: "Split",
-        dates: "4 al 7 de Septiembre (3 noches)",
+        dates: "3 al 6 de Septiembre (3 noches)",
         name: "Cornaro Hotel Split",
         stars: 4,
         address: "Sinjska ul. 6, Split, Croacia",
@@ -624,7 +633,7 @@
       },
       {
         city: "Dubrovnik",
-        dates: "7 al 11 de Septiembre (4 noches)",
+        dates: "6 al 10 de Septiembre (4 noches)",
         name: "Valamar Lacroma Hotel",
         stars: 4,
         address: "Ul. Iva Dulčića 34, Dubrovnik, Croacia",
@@ -634,7 +643,7 @@
       },
       {
         city: "Zadar",
-        dates: "11 al 12 de Septiembre (1 noche)",
+        dates: "10 al 11 de Septiembre (1 noche)",
         name: "Hyatt Regency Zadar",
         stars: 5,
         address: "Obala kneza Trpimira 7, Zadar, Croacia",
@@ -644,7 +653,7 @@
       },
       {
         city: "Opatija",
-        dates: "12 al 14 de Septiembre (2 noches)",
+        dates: "11 al 13 de Septiembre (2 noches)",
         name: "Hotel Milenij Opatija",
         stars: 5,
         address: "Ul. Maršala Tita 109, Opatija, Croacia",
@@ -654,7 +663,7 @@
       },
       {
         city: "Ljubljana",
-        dates: "14 al 18 de Septiembre (4 noches)",
+        dates: "13 al 17 de Septiembre (4 noches)",
         name: "Grand Hotel Union Eurostars",
         stars: 4,
         address: "Miklošičeva cesta 1, Ljubljana, Eslovenia",
@@ -663,6 +672,99 @@
         bg: "from-slate-700 to-slate-900"
       }
     ];
+
+    let currentActiveStat = null;
+
+    function toggleStatsDetail(type) {
+      const panel = document.getElementById('statsDetailPanel');
+      const title = document.getElementById('statsDetailTitle');
+      const content = document.getElementById('statsDetailContent');
+
+      if (currentActiveStat === type && !panel.classList.contains('hidden')) {
+        closeStatsDetail();
+        return;
+      }
+
+      currentActiveStat = type;
+      panel.classList.remove('hidden');
+
+      if (type === 'countries') {
+        title.innerHTML = "🌍 Países del Itinerario (4 Países)";
+        content.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+            <a href="https://maps.google.com/?q=Croatia" target="_blank" class="bg-sky-50 border border-sky-100 p-3 rounded-lg flex items-center justify-between hover:bg-sky-100 transition">
+              <div>
+                <p class="font-bold text-sky-900">Croacia 🇭🇷</p>
+                <p class="text-[11px] text-sky-700">Zagreb, Split, Dubrovnik, Zadar, Opatija</p>
+              </div>
+              <i class="fa-solid fa-arrow-up-right-from-square text-sky-600 text-xs"></i>
+            </a>
+            <a href="https://maps.google.com/?q=Montenegro" target="_blank" class="bg-emerald-50 border border-emerald-100 p-3 rounded-lg flex items-center justify-between hover:bg-emerald-100 transition">
+              <div>
+                <p class="font-bold text-emerald-900">Montenegro 🇲🇪</p>
+                <p class="text-[11px] text-emerald-700">Bahía y Casco Antiguo de Kotor</p>
+              </div>
+              <i class="fa-solid fa-arrow-up-right-from-square text-emerald-600 text-xs"></i>
+            </a>
+            <a href="https://maps.google.com/?q=Slovenia" target="_blank" class="bg-indigo-50 border border-indigo-100 p-3 rounded-lg flex items-center justify-between hover:bg-indigo-100 transition">
+              <div>
+                <p class="font-bold text-indigo-900">Eslovenia 🇸🇮</p>
+                <p class="text-[11px] text-indigo-700">Ljubljana, Postojna, Maribor, Bled</p>
+              </div>
+              <i class="fa-solid fa-arrow-up-right-from-square text-indigo-600 text-xs"></i>
+            </a>
+            <a href="https://maps.google.com/?q=Medjugorje+Bosnia" target="_blank" class="bg-amber-50 border border-amber-100 p-3 rounded-lg flex items-center justify-between hover:bg-amber-100 transition">
+              <div>
+                <p class="font-bold text-amber-900">Bosnia y Herze. 🇧🇦</p>
+                <p class="text-[11px] text-amber-700">Santuario de Medjugorje (Opcional)</p>
+              </div>
+              <i class="fa-solid fa-arrow-up-right-from-square text-amber-600 text-xs"></i>
+            </a>
+          </div>
+        `;
+      } else if (type === 'hotels') {
+        title.innerHTML = "🏨 Listado de Hoteles Confirmados (6 Hoteles)";
+        content.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+            ${hotelsList.map(h => `
+              <a href="${h.gmaps}" target="_blank" class="bg-slate-50 border border-slate-200 p-3 rounded-lg hover:border-indigo-300 hover:bg-indigo-50/50 transition flex flex-col justify-between">
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="font-bold text-indigo-900">${h.name}</span>
+                    <span class="text-amber-500 font-bold">${'★'.repeat(h.stars)}</span>
+                  </div>
+                  <p class="text-[11px] text-slate-500">${h.city} • ${h.dates}</p>
+                  <p class="text-[11px] text-slate-600 mt-1"><i class="fa-solid fa-location-dot text-slate-400 mr-1"></i>${h.address}</p>
+                </div>
+                <div class="mt-2 text-right text-indigo-600 font-semibold text-[11px]">
+                  Ver en Google Maps <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-[10px]"></i>
+                </div>
+              </a>
+            `).join('')}
+          </div>
+        `;
+      } else if (type === 'attractions') {
+        title.innerHTML = "📸 Listado de Excursiones y Atracciones (15 Puntos)";
+        content.innerHTML = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1 max-h-60 overflow-y-auto custom-scrollbar">
+            ${mapLocations.filter(m => m.type !== 'hotel').map(a => `
+              <a href="${a.url}" target="_blank" class="bg-slate-50 border border-slate-200 p-2.5 rounded-lg hover:border-emerald-300 hover:bg-emerald-50/50 transition flex items-center justify-between">
+                <div>
+                  <p class="font-bold text-slate-800 text-[11px]">${a.name}</p>
+                  <p class="text-[10px] text-slate-500">${a.desc}</p>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square text-emerald-600 text-xs shrink-0 ml-2"></i>
+              </a>
+            `).join('')}
+          </div>
+        `;
+      }
+    }
+
+    function closeStatsDetail() {
+      document.getElementById('statsDetailPanel').classList.add('hidden');
+      currentActiveStat = null;
+    }
 
     const mapLocations = [
       // HOTELES (6)
